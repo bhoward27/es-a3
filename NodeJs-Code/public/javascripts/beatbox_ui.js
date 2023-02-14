@@ -1,3 +1,4 @@
+// Code provided by Dr. Fraser
 "use strict";
 // Client-side interactions with the browser.
 

@@ -1,3 +1,4 @@
+// Code provided by Dr. Fraser
 // After creating package.json, install modules:
 //   $ npm install
 //
