@@ -10,7 +10,11 @@ deploy:
 	@echo ''
 	mkdir -p $(DEPLOY_PATH)
 	chmod a+rwx $(DEPLOY_PATH)
-	cp -r * $(DEPLOY_PATH)
+
+# spinner.sh displays a loading animation to show the command (in this case, cp) is still running.
+# cp could take a long time, so want feedback to confirm that the VM isn't frozen!
+	./spinner.sh cp -rf * $(DEPLOY_PATH)
+
 	@echo 'Do not edit any files in this folder; they are copied!' > $(DEPLOY_PATH)/DO_NOT_EDIT-FILES_COPIED.txt
 	@echo ''
 	@echo 'NOTE: On the host, in $(DEPLOY_PATH), it is best to run: npm install'
