@@ -6,8 +6,8 @@
 var socket = io.connect();
 $(document).ready(function() {
 
-	$('#btnHelp').click(function(){
-		sendCommandViaUDP("help");
+	$('#modeNone').click(function(){
+		sendCommandViaUDP("modeNone");
 	});
 	$('#btnCount').click(function(){
 		sendCommandViaUDP("count");
@@ -34,4 +34,5 @@ $(document).ready(function() {
 
 function sendCommandViaUDP(message) {
 	socket.emit('daUdpCommand', message);
+	console.log(message);
 };
