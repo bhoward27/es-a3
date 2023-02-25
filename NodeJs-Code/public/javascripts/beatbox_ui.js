@@ -34,5 +34,4 @@ $(document).ready(function() {
 
 function sendCommandViaUDP(message) {
 	socket.emit('daUdpCommand', message);
-	console.log(message);
 };
