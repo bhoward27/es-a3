@@ -4,6 +4,7 @@
 
 #include <alsa/asoundlib.h>
 #include <array>
+#include <iostream>
 #include <thread>
 #include <mutex>
 #include <vector>
@@ -13,6 +14,7 @@
 #include <cmath>
 
 #include "shutdown_manager.h"
+#include "utils.h"
 
 // typedef struct {
 // 	int numSamples;
@@ -74,9 +76,9 @@ class AudioMixer {
                     SND_PCM_ACCESS_RW_INTERLEAVED,
                     numChannels,
                     sampleRateHz,
-                    1,			// Allow software resampling
-             //       50000);		// 0.05 seconds per buffer (50,000 microseconds)
-                    1000000); // 1 second buffer (1,000,000 microseconds).
+                    1,			// Allow software resampling. In our case, it's getting downsampled from 44.1 kHz to about 8 kHz.
+                   50000);		// 0.05 seconds per buffer (50,000 microseconds)
+                    // 1000000); // 1 second buffer (1,000,000 microseconds).
             if (err < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
                 exit(EXIT_FAILURE);
@@ -123,59 +125,39 @@ class AudioMixer {
 
         void readWavFileIntoMemory(std::string fileName, std::vector<short>& sound)
         {
-            // assert(pSound);
-
             // The PCM data in a wave file starts after the header:
             const int PCM_DATA_OFFSET = 44;
 
             // Open the wave file
-            // FILE *file = fopen(fileName, "r");
-            // if (file == NULL) {
-            //     fprintf(stderr, "ERROR: Unable to open file %s.\n", fileName);
-            //     exit(EXIT_FAILURE);
-            // }
-            std::ifstream file(fileName, std::ios::binary);
-
+            FILE *file = fopen(fileName.c_str(), "r");
+            if (file == NULL) {
+                fprintf(stderr, "ERROR: Unable to open file %s.\n", fileName.c_str());
+                exit(EXIT_FAILURE);
+            }
 
             // Get file size
-            // fseek(file, 0, SEEK_END);
-            // int sizeInBytes = ftell(file) - PCM_DATA_OFFSET;
-            // sound->numSamples = sizeInBytes / sampleSize;
-
-            // CITATION: Copied/inspired by this answer from StackOverflow:
-            // https://stackoverflow.com/a/2409527
-            long fsize = file.tellg();
-            file.seekg(0, std::ios::end);
-            fsize = static_cast<long>(file.tellg()) - fsize;
-            // long sizeInBytes = fsize - PCM_DATA_OFFSET;
+            fseek(file, 0, SEEK_END);
+            int sizeInBytes = ftell(file) - PCM_DATA_OFFSET;
+            long numSamples = sizeInBytes / sampleSize;
 
             // Search to the start of the data in the file
-            // fseek(file, PCM_DATA_OFFSET, SEEK_SET);
-            file.seekg(PCM_DATA_OFFSET, std::ios::beg);
+            fseek(file, PCM_DATA_OFFSET, SEEK_SET);
 
             // Allocate space to hold all PCM data
-            // sound->pData = (short*) malloc(sizeInBytes);
-            // if (sound->pData == 0) {
-            //     fprintf(stderr, "ERROR: Unable to allocate %d bytes for file %s.\n",
-            //             sizeInBytes, fileName);
-            //     exit(EXIT_FAILURE);
-            // }
-            // long numSamples = sizeInBytes / sizeof(short);
-            // sound = std::vector<short>(numSamples);
-
-            // CITATION:
-            // https://stackoverflow.com/a/5420568
-            // Not sure about data type of iterator here.
-            sound = std::vector<short>(std::istreambuf_iterator<char>(file), {});
+            sound = std::vector<short>(numSamples);
+            short* pTemp = new short[numSamples];
 
             // Read PCM data from wave file into memory
-            // int samplesRead = fread(sound->pData, sampleSize, sound->numSamples, file);
-            // if (samplesRead != sound->numSamples) {
-            //     fprintf(stderr, "ERROR: Unable to read %d samples from file %s (read %d).\n",
-            //             sound->numSamples, fileName, samplesRead);
-            //     exit(EXIT_FAILURE);
-            // }
-            file.close();
+            int samplesRead = fread(pTemp, sampleSize, numSamples, file);
+            if (samplesRead != numSamples) {
+                std::cerr << "ERROR: Unable to read " << numSamples << " from file " << fileName << " (read " << samplesRead << ").\n";
+                exit(EXIT_FAILURE);
+            }
+
+            std::copy_n(pTemp, numSamples, sound.data());
+
+            delete[] pTemp;
+            fclose(file);
         }
 
         // void freeWaveFileData(wavedata_t* pSound)
@@ -263,7 +245,7 @@ class AudioMixer {
         // Fill the `buff` array with new PCM values to output.
         //    `buff`: buffer to fill with new PCM data from sound bites.
         //    `size`: the number of values to store into playbackBuffer
-        void fillPlaybackBuffer(std::vector<short>& sineWave)
+        bool fillPlaybackBuffer(std::vector<short>& sineWave)
         {
             /*
             * REVISIT: Implement this
@@ -308,19 +290,24 @@ class AudioMixer {
 
             // TODO: Change to real stuff later. For now, just play the bass drum sound.
             // First, zero out the buffer. // TODO: Just zero out remaining samples AFTER buffer filled -- save a bit on copying.
-            //std::fill(playbackBuffer.begin(), playbackBuffer.end(), 0);
+            std::fill(playbackBuffer.begin(), playbackBuffer.end(), 0);
             // static std::vector<short>::size_type soundPos = 0;
             // std::copy_n(sound.bassDrum.begin() + soundPos, playbackBuffer.size(), playbackBuffer.begin());
             // soundPos += playbackBuffer.size();
             // if (soundPos > sound.bassDrum.size()) soundPos = 0;
 
-            // TODO: Let's do a debugging session and find out if the playbackBuffer is the expected size and to see the data in the buffer.
-
             static std::vector<short>::size_type soundPos = 0;
 
-            std::copy_n(sineWave.begin() + soundPos, playbackBuffer.size(), playbackBuffer.begin());
+            // std::copy_n(sineWave.begin() + soundPos, playbackBuffer.size(), playbackBuffer.begin());
+            // soundPos += playbackBuffer.size();
+            // if (soundPos >= sineWave.size()) soundPos = 0;
+            std::copy_n(sound.hiHat.begin() + soundPos, playbackBuffer.size(), playbackBuffer.begin());
             soundPos += playbackBuffer.size();
-            if (soundPos > sineWave.size()) soundPos = 0;
+            if (soundPos >= sound.hiHat.size()) {
+                soundPos = 0;
+                return false;
+            }
+            return true;
         }
 
         void run()
@@ -336,6 +323,7 @@ class AudioMixer {
 
             while (!shutdownManager->isShutdownRequested()) {
                 // Generate next block of audio
+                // bool res = fillPlaybackBuffer(sineWave);
                 fillPlaybackBuffer(sineWave);
 
                 // Output the audio
@@ -356,6 +344,9 @@ class AudioMixer {
                     printf("Short write (expected %li, wrote %li)\n",
                             playbackBufferSize, frames);
                 }
+
+                // TODO: Remove.
+                // if (res) sleepForMs(1000);
             }
         }
 };
