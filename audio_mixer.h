@@ -12,6 +12,7 @@
 #include <iterator>
 #include <algorithm>
 #include <cmath>
+#include <limits.h>
 
 #include "shutdown_manager.h"
 #include "utils.h"
@@ -29,7 +30,7 @@ typedef struct {
 
 	// The offset into the pData of pSound. Indicates how much of the
 	// sound has already been played (and hence where to start playing next).
-	int playbackPosition = 0;
+	std::vector<short>::size_type playbackPos = 0;
 } playbackSound_t;
 
 struct SoundCollection {
@@ -49,6 +50,10 @@ class AudioMixer {
         // Currently active (waiting to be played) sound bites/clips
         static const int maxAudioClips = 30;
 
+        // Please don't modify outside of this class.
+        // TODO: Could use enums instead to choose sound if really want to prevent modification of this variable.
+        SoundCollection sound;
+
         AudioMixer(ShutdownManager* shutdownManager)
         {
 
@@ -59,9 +64,7 @@ class AudioMixer {
             readWavFileIntoMemory("wave-files/100053__menegass__gui-drum-cc.wav", sound.hiHat);
             readWavFileIntoMemory("wave-files/100059__menegass__gui-drum-snare-soft.wav", sound.snare);
 
-            // TODO: Set to default volume instead.
-            // setVolume(defaultVolume);
-            setVolume(maxVolume);
+            setVolume(defaultVolume);
 
             // Open the PCM output
             int err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
@@ -76,9 +79,8 @@ class AudioMixer {
                     SND_PCM_ACCESS_RW_INTERLEAVED,
                     numChannels,
                     sampleRateHz,
-                    1,			// Allow software resampling. In our case, it's getting downsampled from 44.1 kHz to about 8 kHz.
+                    1,			// Allow software resampling.
                    50000);		// 0.05 seconds per buffer (50,000 microseconds)
-                    // 1000000); // 1 second buffer (1,000,000 microseconds).
             if (err < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
                 exit(EXIT_FAILURE);
@@ -90,7 +92,6 @@ class AudioMixer {
             unsigned long unusedBufferSize = 0;
             snd_pcm_get_params(handle, &unusedBufferSize, &playbackBufferSize);
             // ..allocate playback buffer:
-            // playbackBuffer = (short*) malloc(playbackBufferSize * sizeof(*playbackBuffer));
             // Initialize buffer with zeros.
             playbackBuffer = std::vector<short>(playbackBufferSize, 0);
 
@@ -157,6 +158,7 @@ class AudioMixer {
             std::copy_n(pTemp, numSamples, sound.data());
 
             delete[] pTemp;
+            pTemp = nullptr;
             fclose(file);
         }
 
@@ -167,26 +169,42 @@ class AudioMixer {
         //     pSound->pData = NULL;
         // }
 
-        // void queueSound(wavedata_t* pSound)
-        // {
-        //     // Ensure we are only being asked to play "good" sounds:
-        //     assert(pSound->numSamples > 0);
-        //     assert(pSound->pData);
+        void queueSound(std::vector<short>* pNewClip)
+        {
+            // Insert the sound by searching for an empty sound bite spot
+            /*
+            * REVISIT: Implement this:
+            * 1. Since this may be called by other threads, and there is a thread
+            *    processing the soundBites[] array, we must ensure access is threadsafe.
+            * 2. Search through the soundBites[] array looking for a free slot.
+            * 3. If a free slot is found, place the new sound file into that slot.
+            *    Note: You are only copying a pointer, not the entire data of the wave file!
+            * 4. After searching through all slots, if no free slot is found then print
+            *    an error message to the console (and likely just return vs asserting/exiting
+            *    because the application most likely doesn't want to crash just for
+            *    not being able to play another wave file.
+            */
+            if (pNewClip == nullptr || pNewClip->size() == 0) {
+                throw std::invalid_argument("Bad argument for pNewClip.");
+            }
+            bool foundFreeSlot = false;
 
-        //     // Insert the sound by searching for an empty sound bite spot
-        //     /*
-        //     * REVISIT: Implement this:
-        //     * 1. Since this may be called by other threads, and there is a thread
-        //     *    processing the soundBites[] array, we must ensure access is threadsafe.
-        //     * 2. Search through the soundBites[] array looking for a free slot.
-        //     * 3. If a free slot is found, place the new sound file into that slot.
-        //     *    Note: You are only copying a pointer, not the entire data of the wave file!
-        //     * 4. After searching through all slots, if no free slot is found then print
-        //     *    an error message to the console (and likely just return vs asserting/exiting
-        //     *    because the application most likely doesn't want to crash just for
-        //     *    not being able to play another wave file.
-        //     */
-        // }
+            audioMutex.lock();
+            {
+                for (auto& clip : audioClips) {
+                    if (clip.pSound == nullptr) {
+                        clip.pSound = pNewClip;
+                        foundFreeSlot = true;
+                        break;
+                    }
+                }
+            }
+            audioMutex.unlock();
+
+            if (!foundFreeSlot) {
+                std::cerr << "ERROR: All slots in audioClips are currently in use.\n";
+            }
+        }
 
         int getVolume()
         {
@@ -232,10 +250,8 @@ class AudioMixer {
     private:
         snd_pcm_t* handle = nullptr;
         unsigned long playbackBufferSize = 0;
-        // short* playbackBuffer = nullptr; // TODO: Probably convert to an STL collection, or smart pointer
         std::vector<short> playbackBuffer;
         std::array<playbackSound_t, maxAudioClips> audioClips;
-        SoundCollection sound;
         bool stopping = false;
         std::thread playbackThread;
         std::mutex audioMutex;
@@ -245,7 +261,7 @@ class AudioMixer {
         // Fill the `buff` array with new PCM values to output.
         //    `buff`: buffer to fill with new PCM data from sound bites.
         //    `size`: the number of values to store into playbackBuffer
-        bool fillPlaybackBuffer(std::vector<short>& sineWave)
+        void fillPlaybackBuffer()
         {
             /*
             * REVISIT: Implement this
@@ -290,41 +306,64 @@ class AudioMixer {
 
             // TODO: Change to real stuff later. For now, just play the bass drum sound.
             // First, zero out the buffer. // TODO: Just zero out remaining samples AFTER buffer filled -- save a bit on copying.
-            std::fill(playbackBuffer.begin(), playbackBuffer.end(), 0);
+            // std::fill(playbackBuffer.begin(), playbackBuffer.end(), 0);
+            // // static std::vector<short>::size_type soundPos = 0;
+            // // std::copy_n(sound.bassDrum.begin() + soundPos, playbackBuffer.size(), playbackBuffer.begin());
+            // // soundPos += playbackBuffer.size();
+            // // if (soundPos > sound.bassDrum.size()) soundPos = 0;
+
             // static std::vector<short>::size_type soundPos = 0;
-            // std::copy_n(sound.bassDrum.begin() + soundPos, playbackBuffer.size(), playbackBuffer.begin());
-            // soundPos += playbackBuffer.size();
-            // if (soundPos > sound.bassDrum.size()) soundPos = 0;
 
-            static std::vector<short>::size_type soundPos = 0;
-
-            // std::copy_n(sineWave.begin() + soundPos, playbackBuffer.size(), playbackBuffer.begin());
+            // // std::copy_n(sineWave.begin() + soundPos, playbackBuffer.size(), playbackBuffer.begin());
+            // // soundPos += playbackBuffer.size();
+            // // if (soundPos >= sineWave.size()) soundPos = 0;
+            // std::copy_n(sound.hiHat.begin() + soundPos, playbackBuffer.size(), playbackBuffer.begin());
             // soundPos += playbackBuffer.size();
-            // if (soundPos >= sineWave.size()) soundPos = 0;
-            std::copy_n(sound.hiHat.begin() + soundPos, playbackBuffer.size(), playbackBuffer.begin());
-            soundPos += playbackBuffer.size();
-            if (soundPos >= sound.hiHat.size()) {
-                soundPos = 0;
-                return false;
+            // if (soundPos >= sound.hiHat.size()) {
+            //     soundPos = 0;
+            // }
+
+            audioMutex.lock();
+            {
+                for (auto& playbackSample : playbackBuffer) {
+                    int32 sum = 0;
+                    for (auto& clip : audioClips) {
+                        if (clip.pSound == nullptr) continue;
+
+                        if (clip.playbackPos >= clip.pSound->size()) {
+                            clip.playbackPos = 0;
+                            clip.pSound = nullptr;
+                        }
+                        else {
+                            sum += (*clip.pSound)[clip.playbackPos++];
+                        }
+                    }
+                    if (sum > SHRT_MAX) {
+                        sum = SHRT_MAX;
+                    }
+                    else if (sum < SHRT_MIN) {
+                        sum = SHRT_MIN;
+                    }
+                    playbackSample = sum;
+                }
             }
-            return true;
+            audioMutex.unlock();
         }
 
         void run()
         {
             // Generate a 980 Hz sine wave.
-            std::vector<short> sineWave;
-            const double pi = std::acos(-1);
-            const double numSamplesPerPeriod = 45;
-            for (double i = 0, x = 0; i < 44100; i++, x++) {
-                if (x >= numSamplesPerPeriod) x = 0;
-                sineWave.push_back(32767 * std::sin(((2 * pi) / (numSamplesPerPeriod + 1)) * x));
-            }
+            // std::vector<short> sineWave;
+            // const double pi = std::acos(-1);
+            // const double numSamplesPerPeriod = 45;
+            // for (double i = 0, x = 0; i < 44100; i++, x++) {
+            //     if (x >= numSamplesPerPeriod) x = 0;
+            //     sineWave.push_back(32767 * std::sin(((2 * pi) / (numSamplesPerPeriod + 1)) * x));
+            // }
 
             while (!shutdownManager->isShutdownRequested()) {
                 // Generate next block of audio
-                // bool res = fillPlaybackBuffer(sineWave);
-                fillPlaybackBuffer(sineWave);
+                fillPlaybackBuffer();
 
                 // Output the audio
                 // This call is blocking. Returns after buffer has been completely transferred to the sound system.
@@ -344,9 +383,6 @@ class AudioMixer {
                     printf("Short write (expected %li, wrote %li)\n",
                             playbackBufferSize, frames);
                 }
-
-                // TODO: Remove.
-                // if (res) sleepForMs(1000);
             }
         }
 };
