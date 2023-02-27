@@ -46,7 +46,7 @@ class AudioMixer {
         // TODO: Could use enums instead to choose sound if really want to prevent modification of this variable.
         SoundCollection sound;
 
-        AudioMixer(ShutdownManager* shutdownManager);
+        AudioMixer(ShutdownManager* pShutdownManager);
         ~AudioMixer();
         void waitForShutdown();
         void queueSound(std::vector<short>* pNewClip);
@@ -58,11 +58,10 @@ class AudioMixer {
         unsigned long playbackBufferSize = 0;
         std::vector<short> playbackBuffer;
         std::array<playbackSound_t, maxAudioClips> audioClips;
-        bool stopping = false;
         std::thread playbackThread;
-        std::mutex audioMutex;
+        std::mutex lock;
         int volume = 0;
-        ShutdownManager* shutdownManager = nullptr;
+        ShutdownManager* pShutdownManager = nullptr;
 
         void readWav(std::string fileName, std::vector<short>& sound);
         void fillPlaybackBuffer();

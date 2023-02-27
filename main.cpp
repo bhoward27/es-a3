@@ -12,15 +12,15 @@ int main() {
     AudioMixer mixer(&shutdownManager);
     BeatPlayer beatPlayer(&shutdownManager, &mixer);
 
-    beatPlayer.setBpm(300);
+    // beatPlayer.setBpm(300);
     beatPlayer.play(Beat::alternate);
     sleepForMs(1000);
-    beatPlayer.stop();
     beatPlayer.setBpm(40);
-    beatPlayer.play(Beat::alternate);
     sleepForMs(1000);
+    // mixer.setVolume(20);
     beatPlayer.play(Beat::standard);
     sleepForMs(1000);
+
     beatPlayer.stop();
     shutdownManager.requestShutdown();
     mixer.waitForShutdown();
