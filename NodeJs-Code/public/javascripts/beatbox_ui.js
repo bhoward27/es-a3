@@ -21,18 +21,41 @@ $(document).ready(function() {
 	$('#btnStop').click(function(){
 		sendCommandViaUDP("stop");
 	});
-	
-	socket.on('commandReply', function(result) {
+
+	socket.on('bbgNotRunning', function(result) {
 		var newDiv = $('<code></code>')
 			.text(result)
 			.wrapInner("<div></div>");
-		$('#messages').append(newDiv);
-		$('#messages').scrollTop($('#messages').prop('scrollHeight'));
+		$('#error-box').show();
+		$('#error-text').html(newDiv);
 	});
 });
 
 function sendCommandViaUDP(message) {
 	socket.emit('daUdpCommand', message);
+
+	var flag = true;
+	socket.on('commandReply', function(result) {
+		var newDiv = $('<code></code>')
+			.text(result)
+			.wrapInner("<div></div>");
+	});
+
+	setTimeout(function () {
+		if (flag) {
+			// Learned how to check if div is visible from this link: https://stackoverflow.com/questions/178325/how-do-i-check-if-an-element-is-hidden-in-jquery
+			if ($('#error-box').is(":hidden")) {
+				var newDiv = $('<code></code>')
+				.text("NodeJs server is no longer responding, please check that it is running")
+				.wrapInner("<div></div>");
+				$('#error-box').show();
+				$('#error-text').html(newDiv);
+			}
+		}
+		else {
+			$('#error-box').hide();
+		}
+	}, 2000);
 };
 
 // Learned how to send a command every second from the link below
@@ -41,10 +64,29 @@ setInterval(sendUpTimeCommandViaUDP, 1000);
 
 function sendUpTimeCommandViaUDP() {
 	socket.emit('daUdpCommand', "UpTime");
-	socket.on('commandReply', function(result) {
+
+	var flag = true;
+	socket.on('upTimeReply', function(result) {
 		var newDiv = $('<code></code>')
 			.text(result)
 			.wrapInner("<div></div>");
 		$('#status').html(newDiv);
+		flag = false;
 	});
+
+	setTimeout(function () {
+		if (flag) {
+			// Learned how to check if div is visible from this link: https://stackoverflow.com/questions/178325/how-do-i-check-if-an-element-is-hidden-in-jquery
+			if ($('#error-box').is(":hidden")) {
+				var newDiv = $('<code></code>')
+				.text("NodeJs server is no longer responding, please check that it is running")
+				.wrapInner("<div></div>");
+				$('#error-box').show();
+				$('#error-text').html(newDiv);
+			}
+		}
+		else {
+			$('#error-box').hide();
+		}
+	}, 2000);
 };
