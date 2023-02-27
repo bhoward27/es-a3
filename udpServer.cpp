@@ -7,6 +7,7 @@
 #include <string.h>			// for strncmp()
 #include <unistd.h>			// for close()
 #include <ctype.h>
+#include <string>
 
 #define MSG_MAX_LEN 1500
 #define PORT        12345
@@ -15,10 +16,31 @@
 #define MAX_SIZE_HISTORY_NUM_BUFFER 5
 #define LENGTH_OF_GET_COMMAND 4 
 #define MAX_READINGS_PER_LINE 20
+#define UPTIME_FILE "/proc/uptime"
 
 static pthread_t samplerId;
 static int socketDescriptor;
 pthread_mutex_t waitMutex = PTHREAD_MUTEX_INITIALIZER;
+
+static float getUpTime()
+{
+	FILE *uFile = fopen(UPTIME_FILE, "r");
+    if (uFile == NULL) {
+        printf("ERROR: Unable to open value file.\n");
+        exit(1);
+    }
+
+    const int MAX_LENGTH = 1024;
+    char buff[MAX_LENGTH];
+    fgets(buff, MAX_LENGTH, uFile);
+	fclose(uFile);
+
+	// Learned how to convert string to float in c++ from this link: https://cplusplus.com/reference/string/stof/
+	std::string times (buff);
+	std::string::size_type sz;
+	float timeInSeconds = std::stof (times,&sz);
+	return timeInSeconds;
+}
 
 static void *updServerThread(void *args)
 {
@@ -69,14 +91,22 @@ static void *updServerThread(void *args)
 			break;
 		}
 		else if (strncmp(messageRx, "UpTime", strlen("UpTime")) == 0) {
+			float timeInSeconds = getUpTime();
+
+			// Learned how to create a string in c++ from this link: https://stackoverflow.com/questions/10219225/c-create-string-of-text-and-variables
+			char str[1024];
+			sprintf(str, "Device up for: %d:%d:%d(H:M:S)", (int)timeInSeconds/3600, ((int)timeInSeconds/60)%60, (int)timeInSeconds%60);
+			printf("%s\n", str);
+
 			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "Testing display\n");
+			sprintf(messageTx, "%s", str);
 
 			sin_len = sizeof(sinRemote);
 			sendto( socketDescriptor,
 				messageTx, strlen(messageTx),
 				0,
 				(struct sockaddr *) &sinRemote, sin_len);
+			getUpTime();
 		}
 		else if (strncmp(messageRx, "help\n", strlen("help\n")) == 0) {
 			char messageTx[MSG_MAX_LEN];

@@ -40,7 +40,7 @@ function sendCommandViaUDP(message) {
 setInterval(sendUpTimeCommandViaUDP, 1000);
 
 function sendUpTimeCommandViaUDP() {
-	socket.emit('daUdpCommand', "test");
+	socket.emit('daUdpCommand', "UpTime");
 	socket.on('commandReply', function(result) {
 		var newDiv = $('<code></code>')
 			.text(result)
