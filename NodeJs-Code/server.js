@@ -4,7 +4,7 @@
 //
 // Launch server with:
 //   $ node server.js
-var PORT_NUMBER = 8042;
+var PORT_NUMBER = 8088;
 
 
 var http = require('http');
