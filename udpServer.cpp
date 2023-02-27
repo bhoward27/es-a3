@@ -19,8 +19,6 @@
 static pthread_t samplerId;
 static int socketDescriptor;
 pthread_mutex_t waitMutex = PTHREAD_MUTEX_INITIALIZER;
-static char *lastCommand = "";
-
 
 static void *updServerThread(void *args)
 {
@@ -44,9 +42,7 @@ static void *updServerThread(void *args)
 
 		// Set the command to be the last valid command if the command is the new line character
 		printf("message received (%d bytes): \n\n'%s'\n", bytesRx, messageRx);
-		if (strcmp(messageRx, "\n") == 0) {
-			snprintf(messageRx, strlen(lastCommand)+1, "%s", lastCommand);
-		}
+
 		// Checks if the command matches any valid commands and returns an unknown command message if not
 		if (strncmp(messageRx, "stop\n", strlen("stop\n")) == 0) {
 			char messageTx[MSG_MAX_LEN];
@@ -73,8 +69,6 @@ static void *updServerThread(void *args)
 			break;
 		}
 		else if (strncmp(messageRx, "help\n", strlen("help\n")) == 0) {
-			lastCommand = "help\n";
-
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Accepted command examples:\n"
 				"count		-- display total number of samples taken.\n"
