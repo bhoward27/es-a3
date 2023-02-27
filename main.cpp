@@ -2,6 +2,7 @@
 
 #include "audio_mixer.h"
 #include "shutdown_manager.h"
+#include "beat_player.h"
 #include "utils.h"
 
 int main() {
@@ -9,21 +10,19 @@ int main() {
 
     ShutdownManager shutdownManager;
     AudioMixer mixer(&shutdownManager);
+    BeatPlayer beatPlayer(&shutdownManager, &mixer);
 
-    // sleepForMs(1000);
-    // shutdownManager.requestShutdown();
-    while (true) {
-        for (int i = 0; i < 5; i++) {
-            mixer.queueSound(&mixer.sound.bassDrum);
-            sleepForMs(100);
-            mixer.queueSound(&mixer.sound.hiHat);
-            sleepForMs(100);
-            mixer.queueSound(&mixer.sound.snare);
-        }
-
-        sleepForMs(1000);
-    }
-
+    beatPlayer.setBpm(300);
+    beatPlayer.play(Beat::alternate);
+    sleepForMs(1000);
+    beatPlayer.stop();
+    beatPlayer.setBpm(40);
+    beatPlayer.play(Beat::alternate);
+    sleepForMs(1000);
+    beatPlayer.play(Beat::standard);
+    sleepForMs(1000);
+    beatPlayer.stop();
+    shutdownManager.requestShutdown();
     mixer.waitForShutdown();
 
     return 0;
