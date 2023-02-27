@@ -68,6 +68,16 @@ static void *updServerThread(void *args)
 			pthread_mutex_unlock(&waitMutex);
 			break;
 		}
+		else if (strncmp(messageRx, "UpTime", strlen("UpTime")) == 0) {
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Testing display\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
 		else if (strncmp(messageRx, "help\n", strlen("help\n")) == 0) {
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Accepted command examples:\n"

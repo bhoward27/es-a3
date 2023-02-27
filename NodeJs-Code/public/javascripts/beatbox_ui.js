@@ -37,8 +37,14 @@ function sendCommandViaUDP(message) {
 
 // Learned how to send a command every second from the link below
 // https://stackoverflow.com/questions/45752698/periodically-call-node-js-function-every-second
-setInterval(sendTestCommandViaUDP, 1000);
+setInterval(sendUpTimeCommandViaUDP, 1000);
 
-function sendTestCommandViaUDP() {
+function sendUpTimeCommandViaUDP() {
 	socket.emit('daUdpCommand', "test");
+	socket.on('commandReply', function(result) {
+		var newDiv = $('<code></code>')
+			.text(result)
+			.wrapInner("<div></div>");
+		$('#status').html(newDiv);
+	});
 };
