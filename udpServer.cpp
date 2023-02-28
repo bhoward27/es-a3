@@ -4,23 +4,26 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <netdb.h>
-#include <string.h>			// for strncmp()
+#include <cstring>			// for strncmp()
 #include <unistd.h>			// for close()
 #include <ctype.h>
 #include <string>
+#include <exception>
+
+#include "udpServer.h"
 
 #define MSG_MAX_LEN 1500
 #define PORT        12345
 #define READING_MAX_LEN 8
 #define MAX_READINGS_PER_PACKET 210
 #define MAX_SIZE_HISTORY_NUM_BUFFER 5
-#define LENGTH_OF_GET_COMMAND 4 
+#define LENGTH_OF_GET_COMMAND 4
 #define MAX_READINGS_PER_LINE 20
 #define UPTIME_FILE "/proc/uptime"
 
 static pthread_t samplerId;
 static int socketDescriptor;
-pthread_mutex_t waitMutex = PTHREAD_MUTEX_INITIALIZER;
+static ShutdownManager* pShutdownManager = nullptr;
 
 static float getUpTime()
 {
@@ -44,7 +47,7 @@ static float getUpTime()
 
 static void *updServerThread(void *args)
 {
-	while (1) {
+	while (!pShutdownManager->isShutdownRequested()) {
 		// Get the data (blocking)
 		// Will change sin (the address) to be the address of the client.
 		// Note: sin passes information in and out of call!
@@ -75,7 +78,7 @@ static void *updServerThread(void *args)
 				messageTx, strlen(messageTx),
 				0,
 				(struct sockaddr *) &sinRemote, sin_len);
-			pthread_mutex_unlock(&waitMutex);
+			pShutdownManager->requestShutdown();
 			break;
 		}
 		else if (strncmp(messageRx, "mode none", strlen("mode none")) == 0) {
@@ -220,19 +223,24 @@ static void *updServerThread(void *args)
 
 	// Close
 	close(socketDescriptor);
-	
+
 	return 0;
 }
 
-void UdpServer_initialize(void)
+void UdpServer_initialize(ShutdownManager* pShutdownManagerArg)
 {
+    if (pShutdownManagerArg == nullptr) {
+        return;
+    }
+    pShutdownManager = pShutdownManagerArg;
+
 	// Address
 	struct sockaddr_in sin;
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;                   // Connection may be from network
 	sin.sin_addr.s_addr = htonl(INADDR_ANY);    // Host to Network long
 	sin.sin_port = htons(PORT);                 // Host to Network short
-	
+
 	// Create the socket for UDP
 	socketDescriptor = socket(PF_INET, SOCK_DGRAM, 0);
 
