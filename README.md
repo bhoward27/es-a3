@@ -2,3 +2,8 @@ Some of the source code is written in C++, and so you will need the g++ cross-co
 Run these commands to do so:
 `sudo apt update`
 `sudo apt install g++-arm-linux-gnueabihf`
+
+To run the nodejs server:
+Run make in the 'NodeJs-Code' folder
+Run the command 'node server.js' in the '/mnt/remote/node/nodejs-code-copy' folder on the target
+Navigate to '192.168.7.2:8088' on your web browser
