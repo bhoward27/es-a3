@@ -6,32 +6,118 @@
 var socket = io.connect();
 $(document).ready(function() {
 
-	$('#btnHelp').click(function(){
-		sendCommandViaUDP("help");
+	$('#modeNone').click(function(){
+		sendCommandViaUDP("mode none");
 	});
-	$('#btnCount').click(function(){
-		sendCommandViaUDP("count");
+	$('#modeRock1').click(function(){
+		sendCommandViaUDP("mode rock1");
 	});
-	$('#btnLength').click(function(){
-		sendCommandViaUDP("length");
+	$('#modeRock2').click(function(){
+		sendCommandViaUDP("mode rock2");
 	});
-	$('#btnHistory').click(function(){
-		sendCommandViaUDP("history");
+	$('#volumeDown').click(function(){
+		sendCommandViaUDP("volume down");
 	});
-	$('#btnStop').click(function(){
-		sendCommandViaUDP("stop");
+	$('#volumeUp').click(function(){
+		sendCommandViaUDP("volume up");
 	});
-	
-	socket.on('commandReply', function(result) {
-		var newDiv = $('<code></code>')
-			.text(result)
-			.wrapInner("<div></div>");
-		$('#messages').append(newDiv);
-		$('#messages').scrollTop($('#messages').prop('scrollHeight'));
+	$('#tempoDown').click(function(){
+		sendCommandViaUDP("tempo down");
 	});
-	
+	$('#tempoUp').click(function(){
+		sendCommandViaUDP("tempo up");
+	});
+	$('#hiHat').click(function(){
+		sendCommandViaUDP("play hihat");
+	});
+	$('#snare').click(function(){
+		sendCommandViaUDP("play snare");
+	});
+	$('#base').click(function(){
+		sendCommandViaUDP("play base");
+	});
+	$('#terminate').click(function(){
+		sendCommandViaUDP("terminate");
+	});
+
+	socket.on('bbgNotRunning', function(result) {
+		if ($('#error-box').is(":hidden")) {
+			var newDiv = $('<code></code>')
+				.text(result)
+				.wrapInner("<div></div>");
+			$('#error-box').show();
+			$('#error-text').html(newDiv);
+		}
+	});
+
+	socket.on('bbgRunning', function(result) {
+		if ($('#error-box').is(":visible")) {
+			$('#error-box').hide();
+		}
+	});
 });
 
 function sendCommandViaUDP(message) {
 	socket.emit('daUdpCommand', message);
+
+	var flag = true;
+	socket.on('commandReply', function(result) {
+		var newDiv = $('<code></code>')
+			.text(result)
+			.wrapInner("<div></div>");
+		flag = false;
+	});
+
+	setTimeout(function () {
+		if (flag) {
+			// Learned how to check if div is visible from this link: https://stackoverflow.com/questions/178325/how-do-i-check-if-an-element-is-hidden-in-jquery
+			if ($('#error-box').is(":hidden")) {
+				var newDiv = $('<code></code>')
+				.text("NodeJs server is no longer responding, please check that it is running")
+				.wrapInner("<div></div>");
+				$('#error-box').show();
+				$('#error-text').html(newDiv);
+			}
+		}
+	}, 2000);
 };
+
+// Learned how to send a command every second from the link below
+// https://stackoverflow.com/questions/45752698/periodically-call-node-js-function-every-second
+setInterval(sendUpTimeCommandViaUDP, 1000);
+setInterval(sendFieldUpdateCommand, 500);
+
+function sendUpTimeCommandViaUDP() {
+	socket.emit('daUdpCommand', "UpTime");
+
+	var flag = true;
+	socket.on('upTimeReply', function(result) {
+		var newDiv = $('<code></code>')
+			.text(result)
+			.wrapInner("<div></div>");
+		$('#status').html(newDiv);
+		flag = false;
+	});
+
+	setTimeout(function () {
+		if (flag) {
+			// Learned how to check if div is visible from this link: https://stackoverflow.com/questions/178325/how-do-i-check-if-an-element-is-hidden-in-jquery
+			if ($('#error-box').is(":hidden")) {
+				var newDiv = $('<code></code>')
+				.text("NodeJs server is no longer responding, please check that it is running")
+				.wrapInner("<div></div>");
+				$('#error-box').show();
+				$('#error-text').html(newDiv);
+			}
+		}
+		else {
+			if ($('#error-box').is(":visible")) {
+				$('#error-box').hide();
+			}
+		}
+	}, 2000);
+};
+
+function sendFieldUpdateCommand() {
+	sendCommandViaUDP("update fields");
+}

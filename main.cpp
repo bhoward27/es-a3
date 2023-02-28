@@ -1,4 +1,6 @@
 #include <iostream>
+#include "udpServer.h"
+
 
 #include "audio_mixer.h"
 #include "shutdown_manager.h"
@@ -7,6 +9,14 @@
 
 int main() {
     std::cout << "Hello BeagleBone!\n";
+    UdpServer_initialize();
+
+    // Lock the wait mutex
+	pthread_mutex_lock(&waitMutex);
+
+    // Wait for mutex to unlock
+    pthread_mutex_lock(&waitMutex);
+    pthread_mutex_unlock(&waitMutex);
 
     ShutdownManager shutdownManager;
     AudioMixer mixer(&shutdownManager);
@@ -23,6 +33,10 @@ int main() {
 
     beatPlayer.stop();
     shutdownManager.requestShutdown();
+
+    printf("Cleaning everything up.\n");
+    UdpServer_cleanup();
+    printf("Done!\n");
 
     return 0;
 }

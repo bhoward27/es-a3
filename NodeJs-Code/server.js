@@ -4,7 +4,7 @@
 //
 // Launch server with:
 //   $ node server.js
-var PORT_NUMBER = 8042;
+var PORT_NUMBER = 8088;
 
 
 var http = require('http');
@@ -19,7 +19,7 @@ var server = http.createServer(function(request, response) {
 	var filePath = false;
 	
 	if (request.url == '/') {
-		filePath = 'public/index.html';
+		filePath = 'public/sample_index.html';
 	} else {
 		filePath = 'public' + request.url;
 	}
@@ -29,7 +29,7 @@ var server = http.createServer(function(request, response) {
 });
 
 server.listen(PORT_NUMBER, function() {
-	console.log("Server listeneing on port " + PORT_NUMBER);
+	console.log("Server listening on port " + PORT_NUMBER);
 });
 
 function serveStatic(response, absPath) {

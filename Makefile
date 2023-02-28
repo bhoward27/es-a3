@@ -7,7 +7,7 @@ STD = -std=c++17
 WFLAGS = -Wall -Werror
 OPT = -g
 LFLAGS = -L$(HOME)/cmpt433/public/asound_lib_BBB
-CPP_FILES = main.cpp shutdown_manager.cpp utils.cpp audio_mixer.cpp beat_player.cpp
+CPP_FILES = main.cpp shutdown_manager.cpp utils.cpp audio_mixer.cpp beat_player.cpp udpServer.cpp
 
 all: beatbox
 
@@ -17,3 +17,4 @@ beatbox: $(CPP_FILES)
 clean:
 	rm -f $(OUT_DIR)/beatbox
 	rm -f *.o *.s *.out
+
