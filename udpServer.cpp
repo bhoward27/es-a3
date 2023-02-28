@@ -66,7 +66,7 @@ static void *updServerThread(void *args)
 		printf("message received (%d bytes): \n\n'%s'\n", bytesRx, messageRx);
 
 		// Checks if the command matches any valid commands and returns an unknown command message if not
-		if (strncmp(messageRx, "stop\n", strlen("stop\n")) == 0) {
+		if (strncmp(messageRx, "terminate\n", strlen("terminate\n")) == 0) {
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Program terminating.\n");
 
@@ -78,17 +78,105 @@ static void *updServerThread(void *args)
 			pthread_mutex_unlock(&waitMutex);
 			break;
 		}
-		else if (strncmp(messageRx, "modeNone", strlen("modeNone")) == 0) {
+		else if (strncmp(messageRx, "mode none", strlen("mode none")) == 0) {
 			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "Program terminating.\n");
+			sprintf(messageTx, "Set mode to none.\n");
 
 			sin_len = sizeof(sinRemote);
 			sendto( socketDescriptor,
 				messageTx, strlen(messageTx),
 				0,
 				(struct sockaddr *) &sinRemote, sin_len);
-			pthread_mutex_unlock(&waitMutex);
-			break;
+		}
+		else if (strncmp(messageRx, "mode rock1", strlen("mode rock1")) == 0) {
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Set mode to rock1.\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
+		else if (strncmp(messageRx, "mode rock2", strlen("mode rock2")) == 0) {
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Set mode to rock2.\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
+		else if (strncmp(messageRx, "volume up", strlen("volume up")) == 0) {
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Turn volume up\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
+		else if (strncmp(messageRx, "volume down", strlen("volume down")) == 0) {
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Turn volume down\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
+		else if (strncmp(messageRx, "tempo up", strlen("tempo up")) == 0) {
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Turn tempo up\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
+		else if (strncmp(messageRx, "tempo down", strlen("tempo down")) == 0) {
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Turn tempo down\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
+		else if (strncmp(messageRx, "play hihat", strlen("play hihat")) == 0) {
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Play hihat sound\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
+		else if (strncmp(messageRx, "play snare", strlen("play snare")) == 0) {
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Play snare sound\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
+		else if (strncmp(messageRx, "play base", strlen("play base")) == 0) {
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Play base sound\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "update fields", strlen("update fields")) == 0) {
 			char messageTx[MSG_MAX_LEN];
@@ -118,26 +206,9 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 			getUpTime();
 		}
-		else if (strncmp(messageRx, "help\n", strlen("help\n")) == 0) {
-			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "Accepted command examples:\n"
-				"count		-- display total number of samples taken.\n"
-				"length		-- display number of samples in history (both max, and current).\n"
-				"history		-- display the full sample history being saved.\n"
-				"get 10		-- display the 10 most recent history values.\n"
-				"dips		-- display number of dips in history\n"
-				"stop		-- cause the server program to end.\n"
-				"<enter>		-- repeat last command\n");
-
-			sin_len = sizeof(sinRemote);
-			sendto( socketDescriptor,
-				messageTx, strlen(messageTx),
-				0,
-				(struct sockaddr *) &sinRemote, sin_len);
-		}
 		else {
 			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "Unknown command. Type 'help' for command list.\n");
+			sprintf(messageTx, "Unknown command\n");
 
 			sin_len = sizeof(sinRemote);
 			sendto( socketDescriptor,
