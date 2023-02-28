@@ -14,7 +14,7 @@ CFLAGS = $(WFLAGS) $(OPT) -D _POSIX_C_SOURCE=200809L
 LFLAGS = -L$(HOME)/cmpt433/public/asound_lib_BBB
 SOURCES = main.cpp shutdown_manager.cpp utils.cpp audio_mixer.cpp beat_player.cpp udpServer.cpp
 
-all: node wav cpp_app
+all: cpp_app node wav
 
 cpp_app: $(SOURCES)
 	$(CC_C) $(CFLAGS) $(SOURCES) -o $(OUTDIR)/$(TARGET) $(LFLAGS) -lpthread -lasound

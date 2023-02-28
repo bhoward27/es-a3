@@ -25,7 +25,6 @@ int main() {
 
     beatPlayer.stop();
 
-    printf("Cleaning everything up.\n");
     UdpServer_cleanup();
     printf("Done!\n");
 
