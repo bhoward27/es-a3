@@ -61,13 +61,10 @@ AudioMixer::AudioMixer(ShutdownManager* pShutdownManager)
     playbackThread = std::thread([this] {run();});
 }
 
-void AudioMixer::waitForShutdown()
-{
-    playbackThread.join();
-}
-
 AudioMixer::~AudioMixer()
 {
+    playbackThread.join();
+
     // Shutdown the PCM output, allowing any pending sound to play out (drain)
     snd_pcm_drain(handle);
     snd_pcm_close(handle);

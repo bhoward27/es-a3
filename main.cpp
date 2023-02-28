@@ -23,7 +23,6 @@ int main() {
 
     beatPlayer.stop();
     shutdownManager.requestShutdown();
-    mixer.waitForShutdown();
 
     return 0;
 }

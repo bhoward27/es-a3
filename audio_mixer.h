@@ -48,7 +48,6 @@ class AudioMixer {
 
         AudioMixer(ShutdownManager* pShutdownManager);
         ~AudioMixer();
-        void waitForShutdown();
         void queueSound(std::vector<short>* pNewClip);
         int getVolume();
         void setVolume(int newVolume);
