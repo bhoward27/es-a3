@@ -11,21 +11,21 @@
 <form>
 	<h1>BeagleBone Beat-Box</h1>
 	<div>by Ben and Kevin!</div>
-	
+
 	<div id='content'>
 		<div id='status-box'>
 			<h2>BeatBox's Status</h2>
 			<div id='status'></div>
 		</div>
-		
+
 		<div id='left-box'>
 			<div id='modediv'>
 				<h2>Drum Beat Selection</h2>
 				<p>Current drum beat mode is: <strong><span id="modeid"></span></strong></p>
 				<p>
 					<input type="button" id="modeNone"  value="None"/>
-					<input type="button" id="modeRock1" value="Rock #1"/>
-					<input type="button" id="modeRock2" value="Describe Your Beat here"/>
+					<input type="button" id="modeRock1" value="Standard"/>
+					<input type="button" id="modeRock2" value="Alternate"/>
 				</p>
 				<h3>Volume</h3>
 				<p>
@@ -45,10 +45,10 @@
 				<p>
 					<input type="button" id="hiHat"  value="Hi-Hat"/>
 					<input type="button" id="snare" value="Snare"/>
-					<input type="button" id="base" value="Base"/>
+					<input type="button" id="base" value="Bass"/>
 				</p>
 			</div>
-			
+
 			<div id='control'>
 				<p>
 					<input type="button" id="terminate" value="Terminate Program"/>
@@ -63,7 +63,7 @@
 
 	</div>
 </form>
-	
+
 	<script src='/socket.io/socket.io.js' type='text/javascript'></script>
 	<script src='http://code.jquery.com/jquery-1.11.1.min.js' type='text/javascript'></script>
 	<script src='javascripts/beatbox_ui.js' type='text/javascript'></script>

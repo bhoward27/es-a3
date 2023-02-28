@@ -9,9 +9,11 @@
 #include <pthread.h>
 
 #include "shutdown_manager.h"
+#include "beat_player.h"
+#include "audio_mixer.h"
 
 // Initializes the udpServer and allows it to take commands
-void UdpServer_initialize(ShutdownManager* pShutdownManagerArg);
+void UdpServer_initialize(ShutdownManager* pShutdownManagerArg, AudioMixer* pAudioMixerArg, BeatPlayer* pBeatPlayerArg);
 
 // Cleans up and closes the udpServer
 void UdpServer_cleanup(void);

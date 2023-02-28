@@ -32,6 +32,18 @@ void BeatPlayer::stop()
     }
 }
 
+Beat BeatPlayer::getBeat()
+{
+    Beat currentBeat;
+    lock.lock();
+    {
+        currentBeat = beat;
+    }
+    lock.unlock();
+
+    return currentBeat;
+}
+
 void BeatPlayer::play(Beat beat)
 {
     lock.lock();

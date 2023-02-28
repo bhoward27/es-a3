@@ -31,6 +31,7 @@ class BeatPlayer {
         // shutdown
         // procedure.
         void stop();
+        Beat getBeat();
         int setBpm(int bpm);
         int getBpm();
         int increaseTempo();
