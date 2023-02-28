@@ -17,6 +17,8 @@ SOURCES = main.cpp shutdown_manager.cpp utils.cpp audio_mixer.cpp beat_player.cp
 all: cpp_app node wav
 
 cpp_app: $(SOURCES)
+	@echo 'COMPILING C++ CODE'
+	@echo ''
 	$(CC_C) $(CFLAGS) $(SOURCES) -o $(OUTDIR)/$(TARGET) $(LFLAGS) -lpthread -lasound
 
 wav:

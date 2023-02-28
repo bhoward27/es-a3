@@ -11,21 +11,10 @@ int main() {
     std::cout << "Hello BeagleBone!\n";
 
     ShutdownManager shutdownManager;
-    UdpServer_initialize(&shutdownManager);
-    Joystick_initializeJoystick();
+    Joystick_initializeJoystick(&shutdownManager);
     AudioMixer mixer(&shutdownManager);
     BeatPlayer beatPlayer(&shutdownManager, &mixer);
-
-    // beatPlayer.setBpm(300);
-    beatPlayer.play(Beat::alternate);
-    sleepForMs(1000);
-    beatPlayer.setBpm(40);
-    sleepForMs(1000);
-    // mixer.setVolume(20);
-    beatPlayer.play(Beat::standard);
-    sleepForMs(1000);
-
-    beatPlayer.stop();
+    UdpServer_initialize(&shutdownManager, &mixer, &beatPlayer);
 
     UdpServer_cleanup();
     Joystick_cleanupJoystick();

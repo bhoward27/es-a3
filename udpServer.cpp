@@ -24,6 +24,8 @@
 static pthread_t samplerId;
 static int socketDescriptor;
 static ShutdownManager* pShutdownManager = nullptr;
+static BeatPlayer* pBeatPlayer = nullptr;
+static AudioMixer* pAudioMixer = nullptr;
 
 static float getUpTime()
 {
@@ -70,6 +72,9 @@ static void *updServerThread(void *args)
 
 		// Checks if the command matches any valid commands and returns an unknown command message if not
 		if (strncmp(messageRx, "terminate", strlen("terminate")) == 0) {
+			pShutdownManager->requestShutdown();
+			pBeatPlayer->stop();
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Program terminating.\n");
 
@@ -78,10 +83,11 @@ static void *updServerThread(void *args)
 				messageTx, strlen(messageTx),
 				0,
 				(struct sockaddr *) &sinRemote, sin_len);
-			pShutdownManager->requestShutdown();
 			break;
 		}
 		else if (strncmp(messageRx, "mode none", strlen("mode none")) == 0) {
+			pBeatPlayer->stop(); // Equivalently, could call play(Beat::none).
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Set mode to none.\n");
 
@@ -92,6 +98,8 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "mode rock1", strlen("mode rock1")) == 0) {
+			pBeatPlayer->play(Beat::standard);
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Set mode to rock1.\n");
 
@@ -102,6 +110,8 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "mode rock2", strlen("mode rock2")) == 0) {
+			pBeatPlayer->play(Beat::alternate);
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Set mode to rock2.\n");
 
@@ -112,6 +122,8 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "volume up", strlen("volume up")) == 0) {
+			pAudioMixer->increaseVolume();
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Turn volume up\n");
 
@@ -122,6 +134,8 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "volume down", strlen("volume down")) == 0) {
+			pAudioMixer->decreaseVolume();
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Turn volume down\n");
 
@@ -132,6 +146,8 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "tempo up", strlen("tempo up")) == 0) {
+			pBeatPlayer->increaseTempo();
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Turn tempo up\n");
 
@@ -142,6 +158,8 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "tempo down", strlen("tempo down")) == 0) {
+			pBeatPlayer->decreaseTempo();
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Turn tempo down\n");
 
@@ -152,6 +170,8 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "play hihat", strlen("play hihat")) == 0) {
+			pAudioMixer->queueSound(&pAudioMixer->sound.hiHat);
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Play hihat sound\n");
 
@@ -162,6 +182,8 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "play snare", strlen("play snare")) == 0) {
+			pAudioMixer->queueSound(&pAudioMixer->sound.snare);
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Play snare sound\n");
 
@@ -172,6 +194,8 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "play base", strlen("play base")) == 0) {
+			pAudioMixer->queueSound(&pAudioMixer->sound.bassDrum);
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Play base sound\n");
 
@@ -227,12 +251,14 @@ static void *updServerThread(void *args)
 	return 0;
 }
 
-void UdpServer_initialize(ShutdownManager* pShutdownManagerArg)
+void UdpServer_initialize(ShutdownManager* pShutdownManagerArg, AudioMixer* pAudioMixerArg, BeatPlayer* pBeatPlayerArg)
 {
-    if (pShutdownManagerArg == nullptr) {
+    if (pShutdownManagerArg == nullptr || pAudioMixerArg == nullptr || pBeatPlayerArg == nullptr) {
         return;
     }
     pShutdownManager = pShutdownManagerArg;
+    pAudioMixer = pAudioMixerArg;
+    pBeatPlayer = pBeatPlayerArg;
 
 	// Address
 	struct sockaddr_in sin;
