@@ -7,19 +7,37 @@ var socket = io.connect();
 $(document).ready(function() {
 
 	$('#modeNone').click(function(){
-		sendCommandViaUDP("modeNone");
+		sendCommandViaUDP("mode none");
 	});
-	$('#btnCount').click(function(){
-		sendCommandViaUDP("count");
+	$('#modeRock1').click(function(){
+		sendCommandViaUDP("mode rock1");
 	});
-	$('#btnLength').click(function(){
-		sendCommandViaUDP("length");
+	$('#modeRock2').click(function(){
+		sendCommandViaUDP("mode rock2");
 	});
-	$('#btnHistory').click(function(){
-		sendCommandViaUDP("history");
+	$('#volumeDown').click(function(){
+		sendCommandViaUDP("volume down");
 	});
-	$('#btnStop').click(function(){
-		sendCommandViaUDP("stop");
+	$('#volumeUp').click(function(){
+		sendCommandViaUDP("volume up");
+	});
+	$('#tempoDown').click(function(){
+		sendCommandViaUDP("tempo down");
+	});
+	$('#tempoUp').click(function(){
+		sendCommandViaUDP("tempo up");
+	});
+	$('#hiHat').click(function(){
+		sendCommandViaUDP("play hihat");
+	});
+	$('#snare').click(function(){
+		sendCommandViaUDP("play snare");
+	});
+	$('#base').click(function(){
+		sendCommandViaUDP("play base");
+	});
+	$('#terminate').click(function(){
+		sendCommandViaUDP("terminate");
 	});
 
 	socket.on('bbgNotRunning', function(result) {
