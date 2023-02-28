@@ -5,12 +5,14 @@
 #include "beat_player.h"
 #include "utils.h"
 #include "udpServer.h"
+#include "joystick.h"
 
 int main() {
     std::cout << "Hello BeagleBone!\n";
 
     ShutdownManager shutdownManager;
     UdpServer_initialize(&shutdownManager);
+    Joystick_initializeJoystick();
     AudioMixer mixer(&shutdownManager);
     BeatPlayer beatPlayer(&shutdownManager, &mixer);
 
@@ -26,6 +28,7 @@ int main() {
     beatPlayer.stop();
 
     UdpServer_cleanup();
+    Joystick_cleanupJoystick();
     printf("Done!\n");
 
     return 0;
