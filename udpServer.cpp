@@ -70,6 +70,8 @@ static void *updServerThread(void *args)
 
 		// Checks if the command matches any valid commands and returns an unknown command message if not
 		if (strncmp(messageRx, "terminate", strlen("terminate")) == 0) {
+			pShutdownManager->requestShutdown();
+
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Program terminating.\n");
 
@@ -78,7 +80,6 @@ static void *updServerThread(void *args)
 				messageTx, strlen(messageTx),
 				0,
 				(struct sockaddr *) &sinRemote, sin_len);
-			pShutdownManager->requestShutdown();
 			break;
 		}
 		else if (strncmp(messageRx, "mode none", strlen("mode none")) == 0) {

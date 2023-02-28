@@ -1,4 +1,4 @@
-// Module that contains joystick functions 
+// Module that contains joystick functions
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <iostream>
 #include <chrono>
+
 #include "joystick.h"
 #include "utils.h"
 
@@ -25,8 +26,9 @@ static pthread_t samplerId;
 // Learned how to make ms timer from this link: https://www.reddit.com/r/learnprogramming/comments/1dlxqv/comment/c9rksma/
 static int upDirectionTimer = clock();
 static bool cleanupFlag = false;
+static ShutdownManager* pShutdownManager = nullptr;
 
-// The function below was provided by Dr. Brian Fraser 
+// The function below was provided by Dr. Brian Fraser
 static void Joystick_runCommand(std::string command)
 {
     // Execute the shell command (output into pipe)
@@ -46,7 +48,7 @@ static void Joystick_runCommand(std::string command)
         perror("Unable to execute command:");
         printf("  command:   %s\n", command.c_str());
         printf("  exit code: %d\n", exitCode);
-    } 
+    }
 }
 
 static void Joystick_setGPIODirectionToIn(std::string directionFile)
@@ -79,7 +81,7 @@ static int Joystick_isDirectionPressed(std::string valueFile)
     return 0;
 }
 
-enum direction Joystick_checkWhichDirectionIsPressed(void) 
+enum direction Joystick_checkWhichDirectionIsPressed(void)
 {
     if (Joystick_isDirectionPressed(JOYSTICK_UP_VALUE_FILE)) {
         enum direction returnValue = up;
@@ -126,8 +128,13 @@ static void *joystickThread(void *args)
     return 0;
 }
 
-void Joystick_initializeJoystick(void) 
+void Joystick_initializeJoystick(ShutdownManager* pShutdownManagerArg)
 {
+    if (pShutdownManagerArg == nullptr) {
+        return;
+    }
+    pShutdownManager = pShutdownManagerArg;
+
     Joystick_runCommand("config-pin p8.14 gpio");
     Joystick_runCommand("config-pin p8.15 gpio");
     Joystick_runCommand("config-pin p8.16 gpio");
@@ -143,7 +150,7 @@ void Joystick_initializeJoystick(void)
     pthread_create(&samplerId, NULL, &joystickThread, NULL);
 }
 
-void Joystick_cleanupJoystick(void) 
+void Joystick_cleanupJoystick(void)
 {
     cleanupFlag = true;
     pthread_join(samplerId, NULL);

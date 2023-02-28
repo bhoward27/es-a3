@@ -80,15 +80,67 @@ void BeatPlayer::play(Beat beat)
     lock.unlock();
 }
 
-void BeatPlayer::setBpm(int bpm)
+int BeatPlayer::clampBpm(int bpm)
 {
-    if (bpm < minBpm || bpm > maxBpm) return;
+    if (bpm < minBpm) {
+        return minBpm;
+    }
+    else if (bpm > maxBpm) {
+        return maxBpm;
+    }
+    else {
+        return bpm;
+    }
+}
+
+int BeatPlayer::setBpm(int bpm)
+{
+    bpm = clampBpm(bpm);
 
     lock.lock();
     {
         this->bpm = bpm;
     }
     lock.unlock();
+
+    return bpm;
+}
+
+int BeatPlayer::getBpm()
+{
+    int currentBpm;
+
+    lock.lock();
+    {
+        currentBpm = bpm;
+    }
+    lock.unlock();
+
+    return currentBpm;
+}
+
+int BeatPlayer::increaseTempo()
+{
+    int newBpm;
+    lock.lock();
+    {
+        newBpm = clampBpm(bpm + bpmDelta);
+        bpm = newBpm;
+    }
+    lock.unlock();
+    return newBpm;
+}
+
+int BeatPlayer::decreaseTempo()
+{
+    int newBpm;
+    lock.lock();
+    {
+        newBpm = clampBpm(bpm - bpmDelta);
+        bpm = newBpm;
+    }
+    lock.unlock();
+    return newBpm;
 }
 
 void BeatPlayer::playLoop(std::function<void()> playBeat)

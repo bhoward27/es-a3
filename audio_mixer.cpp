@@ -111,43 +111,84 @@ int AudioMixer::getVolume()
     return currentVolume;
 }
 
+int AudioMixer::clampVolume(int volume)
+{
+    if (volume < minVolume) {
+        return minVolume;
+    }
+    else if (volume > maxVolume) {
+        return maxVolume;
+    }
+    else {
+        return volume;
+    }
+}
+
 // CITATION: Dr. Fraser copied function from:
 // http://stackoverflow.com/questions/6787318/set-alsa-master-volume-from-c-code
 // Written by user "trenki".
-void AudioMixer::setVolume(int newVolume)
+int AudioMixer::setVolume(int newVolume)
 {
-    // Ensure volume is reasonable; If so, cache it for later getVolume() calls.
-    if (newVolume < 0 || newVolume > maxVolume) {
-        printf("ERROR: Volume must be between 0 and 100.\n");
-        return;
-    }
+    newVolume = clampVolume(newVolume);
 
     lock.lock();
     {
-        volume = newVolume;
-
-        long min, max;
-        snd_mixer_t *volHandle;
-        snd_mixer_selem_id_t *sid;
-        const char *card = "default";
-        const char *selem_name = "PCM";
-
-        snd_mixer_open(&volHandle, 0);
-        snd_mixer_attach(volHandle, card);
-        snd_mixer_selem_register(volHandle, NULL, NULL);
-        snd_mixer_load(volHandle);
-
-        snd_mixer_selem_id_alloca(&sid);
-        snd_mixer_selem_id_set_index(sid, 0);
-        snd_mixer_selem_id_set_name(sid, selem_name);
-        snd_mixer_elem_t* elem = snd_mixer_find_selem(volHandle, sid);
-
-        snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-        snd_mixer_selem_set_playback_volume_all(elem, volume * max / 100);
-
-        snd_mixer_close(volHandle);
+        _setVolume(newVolume);
     }
     lock.unlock();
+
+    return newVolume;
+}
+
+// Not thread-safe.
+void AudioMixer::_setVolume(int newVolume)
+{
+    volume = newVolume;
+
+    long min, max;
+    snd_mixer_t *volHandle;
+    snd_mixer_selem_id_t *sid;
+    const char *card = "default";
+    const char *selem_name = "PCM";
+
+    snd_mixer_open(&volHandle, 0);
+    snd_mixer_attach(volHandle, card);
+    snd_mixer_selem_register(volHandle, NULL, NULL);
+    snd_mixer_load(volHandle);
+
+    snd_mixer_selem_id_alloca(&sid);
+    snd_mixer_selem_id_set_index(sid, 0);
+    snd_mixer_selem_id_set_name(sid, selem_name);
+    snd_mixer_elem_t* elem = snd_mixer_find_selem(volHandle, sid);
+
+    snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
+    snd_mixer_selem_set_playback_volume_all(elem, volume * max / 100);
+
+    snd_mixer_close(volHandle);
+}
+
+int AudioMixer::increaseVolume()
+{
+    int newVolume;
+    lock.lock();
+    {
+        newVolume = clampVolume(volume + volumeDelta);
+        _setVolume(newVolume);
+    }
+    lock.unlock();
+    return newVolume;
+}
+
+int AudioMixer::decreaseVolume()
+{
+    int newVolume;
+    lock.lock();
+    {
+        newVolume = clampVolume(volume - volumeDelta);
+        _setVolume(newVolume);
+    }
+    lock.unlock();
+    return newVolume;
 }
 
 void AudioMixer::readWav(std::string fileName, std::vector<short>& sound)

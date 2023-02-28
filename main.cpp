@@ -12,18 +12,28 @@ int main() {
 
     ShutdownManager shutdownManager;
     UdpServer_initialize(&shutdownManager);
-    Joystick_initializeJoystick();
+    Joystick_initializeJoystick(&shutdownManager);
     AudioMixer mixer(&shutdownManager);
     BeatPlayer beatPlayer(&shutdownManager, &mixer);
 
-    // beatPlayer.setBpm(300);
-    beatPlayer.play(Beat::alternate);
-    sleepForMs(1000);
-    beatPlayer.setBpm(40);
-    sleepForMs(1000);
-    // mixer.setVolume(20);
     beatPlayer.play(Beat::standard);
-    sleepForMs(1000);
+
+    // int volume = mixer.getVolume();
+    // std::cout << "Volume = " << volume << std::endl;
+    // sleepForMs(500);
+    // while (true) {
+    //     volume = mixer.increaseVolume();
+    //     std::cout << "Volume = " << volume << std::endl;
+    //     sleepForMs(500);
+    // }
+    int bpm = beatPlayer.getBpm();
+    std::cout << "bpm = " << bpm << std::endl;
+    sleepForMs(500);
+    while (true) {
+        bpm = beatPlayer.decreaseTempo();
+        std::cout << "bpm = " << bpm << std::endl;
+        sleepForMs(500);
+    }
 
     beatPlayer.stop();
 

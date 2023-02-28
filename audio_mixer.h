@@ -35,6 +35,8 @@ class AudioMixer {
     public:
         static const int defaultVolume = 80;
         static const int maxVolume = 100;
+        static const int minVolume = 0;
+        static const int volumeDelta = 5;
         static const int sampleRateHz = 44100;
         static const int numChannels = 1;
         static const size_t sampleSize = sizeof(short); // We assume frame size is 1 since numChannels = 1.
@@ -50,7 +52,9 @@ class AudioMixer {
         ~AudioMixer();
         void queueSound(std::vector<short>* pNewClip);
         int getVolume();
-        void setVolume(int newVolume);
+        int setVolume(int newVolume);
+        int increaseVolume();
+        int decreaseVolume();
 
     private:
         snd_pcm_t* handle = nullptr;
@@ -65,6 +69,8 @@ class AudioMixer {
         void readWav(std::string fileName, std::vector<short>& sound);
         void fillPlaybackBuffer();
         void run();
+        int clampVolume(int volume);
+        void _setVolume(int newVolume);
 };
 
 #endif

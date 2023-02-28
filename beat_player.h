@@ -22,6 +22,7 @@ class BeatPlayer {
         static const int defaultBpm = 120;
         static const int minBpm = 40;
         static const int maxBpm = 300;
+        static const int bpmDelta = 5;
 
         BeatPlayer(ShutdownManager* pShutdownManager, AudioMixer* pMixer);
         void play(Beat beat);
@@ -30,7 +31,10 @@ class BeatPlayer {
         // shutdown
         // procedure.
         void stop();
-        void setBpm(int bpm);
+        int setBpm(int bpm);
+        int getBpm();
+        int increaseTempo();
+        int decreaseTempo();
 
     private:
         ShutdownManager* pShutdownManager = nullptr;
@@ -45,6 +49,7 @@ class BeatPlayer {
         void playStandardBeat();
         void playAlternateBeat();
         int64 getHalfBeatTimeMs();
+        int clampBpm(int bpm);
 };
 
 #endif
