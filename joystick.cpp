@@ -24,7 +24,7 @@
 
 static pthread_t samplerId;
 // Learned how to make ms timer from this link: https://www.reddit.com/r/learnprogramming/comments/1dlxqv/comment/c9rksma/
-static int upDirectionTimer = clock();
+static clock_t upDirectionTimer = clock();
 static bool cleanupFlag = false;
 static ShutdownManager* pShutdownManager = nullptr;
 
@@ -106,14 +106,19 @@ enum direction Joystick_checkWhichDirectionIsPressed(void)
 
 static void *joystickThread(void *args)
 {
+    sleepForMs(100);
 	while (true) {
         if (cleanupFlag) {
             break;
         }
         enum direction currentDirection = Joystick_checkWhichDirectionIsPressed();
-
+        // if (100.0 < (double(clock() - upDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
+        //     printf("%f\n", (double(clock() - upDirectionTimer) / CLOCKS_PER_SEC * 1000));
+        // }
+        
         if (currentDirection == up && 100.0 < (double(clock() - upDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
             printf("up command here");
+            printf("%f", (double(clock() - upDirectionTimer) / CLOCKS_PER_SEC * 1000));
             upDirectionTimer = clock();
         } else if (currentDirection == down) {
             printf("down command here");
