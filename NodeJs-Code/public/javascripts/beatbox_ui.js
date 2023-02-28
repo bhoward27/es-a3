@@ -23,11 +23,19 @@ $(document).ready(function() {
 	});
 
 	socket.on('bbgNotRunning', function(result) {
-		var newDiv = $('<code></code>')
-			.text(result)
-			.wrapInner("<div></div>");
-		$('#error-box').show();
-		$('#error-text').html(newDiv);
+		if ($('#error-box').is(":hidden")) {
+			var newDiv = $('<code></code>')
+				.text(result)
+				.wrapInner("<div></div>");
+			$('#error-box').show();
+			$('#error-text').html(newDiv);
+		}
+	});
+
+	socket.on('bbgRunning', function(result) {
+		if ($('#error-box').is(":visible")) {
+			$('#error-box').hide();
+		}
 	});
 });
 
@@ -39,6 +47,7 @@ function sendCommandViaUDP(message) {
 		var newDiv = $('<code></code>')
 			.text(result)
 			.wrapInner("<div></div>");
+		flag = false;
 	});
 
 	setTimeout(function () {
@@ -52,15 +61,13 @@ function sendCommandViaUDP(message) {
 				$('#error-text').html(newDiv);
 			}
 		}
-		else {
-			$('#error-box').hide();
-		}
 	}, 2000);
 };
 
 // Learned how to send a command every second from the link below
 // https://stackoverflow.com/questions/45752698/periodically-call-node-js-function-every-second
 setInterval(sendUpTimeCommandViaUDP, 1000);
+setInterval(sendFieldUpdateCommand, 500);
 
 function sendUpTimeCommandViaUDP() {
 	socket.emit('daUdpCommand', "UpTime");
@@ -86,7 +93,13 @@ function sendUpTimeCommandViaUDP() {
 			}
 		}
 		else {
-			$('#error-box').hide();
+			if ($('#error-box').is(":visible")) {
+				$('#error-box').hide();
+			}
 		}
 	}, 2000);
 };
+
+function sendFieldUpdateCommand() {
+	sendCommandViaUDP("update fields");
+}

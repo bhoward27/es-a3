@@ -62,6 +62,9 @@ function handleCommand(socket) {
 			if (flag) {
 				socket.emit('bbgNotRunning', "BBG C++ application is not responding, please check that it is running");
 			}
+			else {
+				socket.emit('bbgRunning', 'BBG is running');
+			}
 		}, 1000);
 
 		client.on("UDP Client: close", function() {
