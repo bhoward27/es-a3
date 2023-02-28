@@ -5,13 +5,14 @@ CC_C = $(CROSS_COMPILE)g++
 
 STD = -std=c++17
 WFLAGS = -Wall -Werror
-OPT = -g
+OPT = -g -pthread
 
 all: beatbox
 
 beatbox: main.cpp
-	$(CC_C) $(WFLAGS) $(OPT) main.cpp -o $(OUT_DIR)/beatbox
+	$(CC_C) $(WFLAGS) $(OPT) main.cpp udpServer.cpp -o $(OUT_DIR)/beatbox
 
 clean:
 	rm -f $(OUT_DIR)/beatbox
 	rm -f *.o *.s *.out
+
