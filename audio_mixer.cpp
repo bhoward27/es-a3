@@ -14,17 +14,17 @@ AudioMixer::AudioMixer(ShutdownManager* pShutdownManager)
     }
     this->pShutdownManager = pShutdownManager;
 
-    readWav("wave-files/100051__menegass__gui-drum-bd-hard.wav", sound.bassDrum);
-    readWav("wave-files/100053__menegass__gui-drum-cc.wav", sound.hiHat);
-    readWav("wave-files/100059__menegass__gui-drum-snare-soft.wav", sound.snare);
+    readWav("beatbox-wav-files/100051__menegass__gui-drum-bd-hard.wav", sound.bassDrum);
+    readWav("beatbox-wav-files/100053__menegass__gui-drum-cc.wav", sound.hiHat);
+    readWav("beatbox-wav-files/100059__menegass__gui-drum-snare-soft.wav", sound.snare);
 
-    readWav("wave-files/100055__menegass__gui-drum-co.wav", sound.cymbal);
+    readWav("beatbox-wav-files/100055__menegass__gui-drum-co.wav", sound.cymbal);
 
     // This audio file was downloaded from https://freewavesamples.com/claves and converted to mono with
     // https://fconvert.com/audio/.
-    readWav("wave-files/claves-mono.wav", sound.clave);
+    readWav("beatbox-wav-files/claves-mono.wav", sound.clave);
 
-    readWav("wave-files/100063__menegass__gui-drum-tom-hi-soft.wav", sound.tomDrum);
+    readWav("beatbox-wav-files/100063__menegass__gui-drum-tom-hi-soft.wav", sound.tomDrum);
 
     setVolume(defaultVolume);
 
