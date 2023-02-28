@@ -66,7 +66,7 @@ static void *updServerThread(void *args)
 		printf("message received (%d bytes): \n\n'%s'\n", bytesRx, messageRx);
 
 		// Checks if the command matches any valid commands and returns an unknown command message if not
-		if (strncmp(messageRx, "terminate\n", strlen("terminate\n")) == 0) {
+		if (strncmp(messageRx, "terminate", strlen("terminate")) == 0) {
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "Program terminating.\n");
 
