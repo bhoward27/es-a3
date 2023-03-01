@@ -67,9 +67,6 @@ static void *updServerThread(void *args)
 		// - recvfrom given max size - 1, so there is always room for the null
 		messageRx[bytesRx] = 0;
 
-		// Set the command to be the last valid command if the command is the new line character
-		printf("message received (%d bytes): \n\n'%s'\n", bytesRx, messageRx);
-
 		// Checks if the command matches any valid commands and returns an unknown command message if not
 		if (strncmp(messageRx, "terminate", strlen("terminate")) == 0) {
 			pShutdownManager->requestShutdown();
@@ -276,7 +273,6 @@ static void *updServerThread(void *args)
 			// Learned how to create a string in c++ from this link: https://stackoverflow.com/questions/10219225/c-create-string-of-text-and-variables
 			char str[1024];
 			sprintf(str, "Device up for: %d:%d:%d(H:M:S)", (int)timeInSeconds/3600, ((int)timeInSeconds/60)%60, (int)timeInSeconds%60);
-			printf("%s\n", str);
 
 			char messageTx[MSG_MAX_LEN];
 			sprintf(messageTx, "%s", str);
