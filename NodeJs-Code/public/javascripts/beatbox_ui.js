@@ -4,6 +4,8 @@
 
 // Make connection to server when web page is fully loaded.
 var socket = io.connect();
+var modes = ["none", "standard", "alternate"]
+
 $(document).ready(function() {
 
 	$('#modeNone').click(function(){
@@ -36,6 +38,15 @@ $(document).ready(function() {
 	$('#base').click(function(){
 		sendCommandViaUDP("play base");
 	});
+	$('#cymbal').click(function(){
+		sendCommandViaUDP("play cymbal");
+	});
+	$('#clave').click(function(){
+		sendCommandViaUDP("play clave");
+	});
+	$('#tom-drum').click(function(){
+		sendCommandViaUDP("play tom-drum");
+	});
 	$('#terminate').click(function(){
 		sendCommandViaUDP("terminate");
 	});
@@ -62,10 +73,26 @@ function sendCommandViaUDP(message) {
 
 	var flag = true;
 	socket.on('commandReply', function(result) {
-		var newDiv = $('<code></code>')
-			.text(result)
-			.wrapInner("<div></div>");
 		flag = false;
+	});
+	socket.on('volumeReply', function(result) {
+		flag = false;
+		$('#volumeid').val(result);
+	});
+	socket.on('tempoReply', function(result) {
+		flag = false;
+		$('#tempoid').val(result);
+	});
+	socket.on('modeReply', function(result) {
+		flag = false;
+		$('#modeid').text(result);
+	});
+	socket.on('updateReply', function(result) {
+		flag = false;
+		result = result.split(' ');
+		$('#modeid').text(modes[result[1]]);
+		$('#tempoid').val(result[2]);
+		$('#volumeid').val(result[3]);
 	});
 
 	setTimeout(function () {
