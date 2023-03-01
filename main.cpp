@@ -8,7 +8,8 @@
 #include "joystick.h"
 #include "accelerometer.h"
 
-int main() {
+int main()
+{
     std::cout << "Hello BeagleBone!\n";
 
     ShutdownManager shutdownManager;
@@ -16,12 +17,9 @@ int main() {
     AudioMixer mixer(&shutdownManager);
     BeatPlayer beatPlayer(&shutdownManager, &mixer);
     UdpServer_initialize(&shutdownManager, &mixer, &beatPlayer);
-    Accelerometer accel;
-    while (!shutdownManager.isShutdownRequested()) {
-        accel.read();
-        sleepForMs(250);
-    }
+    Accelerometer accel(&shutdownManager);
 
+    accel.waitForShutdown();
     UdpServer_cleanup();
     Joystick_cleanupJoystick();
     printf("Done!\n");
