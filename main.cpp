@@ -1,3 +1,4 @@
+// Program entry point.
 #include <iostream>
 
 #include "audio_mixer.h"
