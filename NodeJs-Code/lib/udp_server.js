@@ -49,6 +49,14 @@ function handleCommand(socket) {
 			// Learned how to compare part of string from this link: https://stackoverflow.com/questions/13833944/compare-part-of-string-in-javascript
 			if (reply.includes("Device")) {
 				socket.emit('upTimeReply', reply);
+			} else if (reply.includes("volume")) {
+				socket.emit('volumeReply', reply.split(' ')[1]);
+			} else if (reply.includes("tempo")) {
+				socket.emit('tempoReply', reply.split(' ')[1]);
+			} else if (reply.includes("mode")) {
+				socket.emit('modeReply', reply.split(' ')[1]);
+			} else if (reply.includes("update")) {
+				socket.emit('updateReply', reply);
 			}
 			else {
 				socket.emit('commandReply', reply);

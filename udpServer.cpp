@@ -89,7 +89,7 @@ static void *updServerThread(void *args)
 			pBeatPlayer->stop(); // Equivalently, could call play(Beat::none).
 
 			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "Set mode to none.\n");
+			sprintf(messageTx, "mode none");
 
 			sin_len = sizeof(sinRemote);
 			sendto( socketDescriptor,
@@ -101,7 +101,7 @@ static void *updServerThread(void *args)
 			pBeatPlayer->play(Beat::standard);
 
 			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "Set mode to rock1.\n");
+			sprintf(messageTx, "mode standard");
 
 			sin_len = sizeof(sinRemote);
 			sendto( socketDescriptor,
@@ -113,7 +113,7 @@ static void *updServerThread(void *args)
 			pBeatPlayer->play(Beat::alternate);
 
 			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "Set mode to rock2.\n");
+			sprintf(messageTx, "mode alternate");
 
 			sin_len = sizeof(sinRemote);
 			sendto( socketDescriptor,
@@ -122,10 +122,13 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "volume up", strlen("volume up")) == 0) {
-			pAudioMixer->increaseVolume();
+			int currentVolume = pAudioMixer->increaseVolume();
+
+			char str[1024];
+			sprintf(str, "volume %d", currentVolume);
 
 			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "Turn volume up\n");
+			sprintf(messageTx, "%s", str);
 
 			sin_len = sizeof(sinRemote);
 			sendto( socketDescriptor,
@@ -134,10 +137,13 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "volume down", strlen("volume down")) == 0) {
-			pAudioMixer->decreaseVolume();
+			int currentVolume = pAudioMixer->decreaseVolume();
+
+			char str[1024];
+			sprintf(str, "volume %d", currentVolume);
 
 			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "Turn volume down\n");
+			sprintf(messageTx, "%s", str);
 
 			sin_len = sizeof(sinRemote);
 			sendto( socketDescriptor,
@@ -146,10 +152,13 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "tempo up", strlen("tempo up")) == 0) {
-			pBeatPlayer->increaseTempo();
+			int currentTempo = pBeatPlayer->increaseTempo();
+
+			char str[1024];
+			sprintf(str, "tempo %d", currentTempo);
 
 			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "Turn tempo up\n");
+			sprintf(messageTx, "%s", str);
 
 			sin_len = sizeof(sinRemote);
 			sendto( socketDescriptor,
@@ -158,10 +167,13 @@ static void *updServerThread(void *args)
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
 		else if (strncmp(messageRx, "tempo down", strlen("tempo down")) == 0) {
-			pBeatPlayer->decreaseTempo();
+			int currentTempo = pBeatPlayer->decreaseTempo();
+
+			char str[1024];
+			sprintf(str, "tempo %d", currentTempo);
 
 			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "Turn tempo down\n");
+			sprintf(messageTx, "%s", str);
 
 			sin_len = sizeof(sinRemote);
 			sendto( socketDescriptor,
@@ -205,9 +217,52 @@ static void *updServerThread(void *args)
 				0,
 				(struct sockaddr *) &sinRemote, sin_len);
 		}
-		else if (strncmp(messageRx, "update fields", strlen("update fields")) == 0) {
+		else if (strncmp(messageRx, "play cymbal", strlen("play cymbal")) == 0) {
+			pAudioMixer->queueSound(&pAudioMixer->sound.cymbal);
+
 			char messageTx[MSG_MAX_LEN];
-			sprintf(messageTx, "INSERT FIELD DATA\n");
+			sprintf(messageTx, "Play cymbal sound\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
+		else if (strncmp(messageRx, "play clave", strlen("play clave")) == 0) {
+			pAudioMixer->queueSound(&pAudioMixer->sound.clave);
+
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Play clave sound\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
+		else if (strncmp(messageRx, "play tom-drum", strlen("play tom-drum")) == 0) {
+			pAudioMixer->queueSound(&pAudioMixer->sound.tomDrum);
+
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "Play tom-drum sound\n");
+
+			sin_len = sizeof(sinRemote);
+			sendto( socketDescriptor,
+				messageTx, strlen(messageTx),
+				0,
+				(struct sockaddr *) &sinRemote, sin_len);
+		}
+		else if (strncmp(messageRx, "update fields", strlen("update fields")) == 0) {
+			Beat currentBeat = pBeatPlayer->getBeat();
+			int currentBpm = pBeatPlayer->getBpm();
+			int currentVolume = pAudioMixer->getVolume();
+
+			char str[1024];
+			sprintf(str, "update %d %d %d", (int)currentBeat, currentBpm, currentVolume);
+
+			char messageTx[MSG_MAX_LEN];
+			sprintf(messageTx, "%s", str);
 
 			sin_len = sizeof(sinRemote);
 			sendto( socketDescriptor,
