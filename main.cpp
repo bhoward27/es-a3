@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "udpServer.h"
 #include "joystick.h"
+#include "accelerometer.h"
 
 int main() {
     std::cout << "Hello BeagleBone!\n";
@@ -15,6 +16,11 @@ int main() {
     AudioMixer mixer(&shutdownManager);
     BeatPlayer beatPlayer(&shutdownManager, &mixer);
     UdpServer_initialize(&shutdownManager, &mixer, &beatPlayer);
+    Accelerometer accel;
+    while (!shutdownManager.isShutdownRequested()) {
+        accel.read();
+        sleepForMs(250);
+    }
 
     UdpServer_cleanup();
     Joystick_cleanupJoystick();
