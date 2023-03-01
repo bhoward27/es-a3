@@ -7,6 +7,7 @@
 #include "udpServer.h"
 #include "joystick.h"
 #include "accelerometer.h"
+#include "air_drummer.h"
 
 int main()
 {
@@ -18,8 +19,8 @@ int main()
     BeatPlayer beatPlayer(&shutdownManager, &mixer);
     UdpServer_initialize(&shutdownManager, &mixer, &beatPlayer);
     Accelerometer accel(&shutdownManager);
+    AirDrummer(&shutdownManager, &mixer, &accel);
 
-    accel.waitForShutdown();
     UdpServer_cleanup();
     Joystick_cleanupJoystick();
     printf("Done!\n");

@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <thread>
+#include <atomic>
 
 struct Acceleration {
     int16 x, y, z;
@@ -14,6 +15,12 @@ struct Acceleration {
 struct BooleanAcceleration {
     bool x, y, z;
 };
+
+struct AtomicBooleanAcceleration {
+    std::atomic<bool> x, y, z;
+};
+
+enum class Axis {x, y, z};
 
 class Accelerometer {
     public:
@@ -32,7 +39,7 @@ class Accelerometer {
 
         static const int16 restingForce = 200;
         static const int16 restingForceZ = 17000;
-        static const int16 minDelta = 1000;
+        static const int16 minDelta = 7000;
         static const int16 minPositiveForce = restingForce + minDelta;
         static const int16 minNegativeForce = -minPositiveForce;
         static const int16 minPositiveForceZ = restingForceZ + minDelta;
@@ -52,6 +59,11 @@ class Accelerometer {
             thread = std::thread([this] {run();});
         }
 
+        ~Accelerometer()
+        {
+            thread.join();
+        }
+
         Acceleration readRaw()
         {
             Acceleration accel = {0};
@@ -66,23 +78,20 @@ class Accelerometer {
             return accel;
         }
 
-        void waitForShutdown()
+        BooleanAcceleration getBoolAccel()
         {
-            thread.join();
+            BooleanAcceleration boolAccel;
+            boolAccel.x = this->boolAccel.x;
+            boolAccel.y = this->boolAccel.y;
+            boolAccel.z = this->boolAccel.z;
+            return boolAccel;
         }
-
 
     private:
         I2c i2c;
-        BooleanAcceleration boolAccel = {false};
+        AtomicBooleanAcceleration boolAccel;
         ShutdownManager* pShutdownManager = nullptr;
         std::thread thread;
-
-
-        BooleanAcceleration getBoolAccel()
-        {
-            return boolAccel;
-        }
 
         void run()
         {
@@ -93,14 +102,9 @@ class Accelerometer {
                 boolAccel.y = (accel.y >= minPositiveForce || accel.y <= minNegativeForce);
                 boolAccel.z = (accel.z >= minPositiveForceZ || accel.z <= minNegativeForceZ);
 
-                std::cout << "x = " << boolAccel.x << std::endl
-                          << "y = " << boolAccel.y << std::endl
-                          << "z = " << boolAccel.z << std::endl;
-
                 sleepForMs(50);
             }
         }
-
 };
 
 #endif
