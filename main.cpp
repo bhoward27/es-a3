@@ -14,9 +14,9 @@ int main() {
 
     Period_init();
     ShutdownManager shutdownManager;
-    Joystick_initializeJoystick(&shutdownManager);
     AudioMixer mixer(&shutdownManager);
     BeatPlayer beatPlayer(&shutdownManager, &mixer);
+    Joystick_initializeJoystick(&shutdownManager, &mixer, &beatPlayer);
     TerminalOutput_initialize(&mixer, &beatPlayer);
     UdpServer_initialize(&shutdownManager, &mixer, &beatPlayer);
         
