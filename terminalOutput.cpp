@@ -15,7 +15,7 @@ static int cleanupFlag = 0;
 static BeatPlayer* pBeatPlayer = nullptr;
 static AudioMixer* pAudioMixer = nullptr;
 Period_statistics_t *pAudioStats = nullptr;
-// Period_statistics_t *pAccelStats = nullptr;
+Period_statistics_t *pAccelStats = nullptr;
 
 static void *terminalOutputThread(void *args)
 {
@@ -26,15 +26,15 @@ static void *terminalOutputThread(void *args)
 		}
 
         Period_getStatisticsAndClear(PERIOD_EVENT_FILL_BUFFER, pAudioStats);
-        // Period_getStatisticsAndClear(PERIOD_EVENT_FILL_BUFFER, pAccelStats);
-		printf("M%d %dbpm vol:%d  Audio[%f, %f] avg %f/%d\n"
+        Period_getStatisticsAndClear(PERIOD_EVENT_SAMPLE_ACCELEROMETER, pAccelStats);
+		printf("M%d %dbpm vol:%d  Audio[%f, %f] avg %f/%d  Accel[%f, %f] avg %f/%d\n"
         , (int)pBeatPlayer->getBeat()
         , pBeatPlayer->getBpm()
         , pAudioMixer->getVolume()
         , pAudioStats->minPeriodInMs, pAudioStats->maxPeriodInMs
         , pAudioStats->avgPeriodInMs, pAudioStats->numSamples
-        // , pAccelStats->minPeriodInMs, pAccelStats->maxPeriodInMs
-        // , pAccelStats->avgPeriodInMs, pAccelStats->numSamples
+        , pAccelStats->minPeriodInMs, pAccelStats->maxPeriodInMs
+        , pAccelStats->avgPeriodInMs, pAccelStats->numSamples
         );
     }
 	return NULL;
@@ -52,13 +52,13 @@ void TerminalOutput_initialize(AudioMixer* pAudioMixerArg, BeatPlayer* pBeatPlay
     pthread_create(&samplerId, NULL, &terminalOutputThread, NULL);
     // Learned how to allocate memory for a typedef struct from this link: https://stackoverflow.com/questions/4252180/using-malloc-in-c-to-allocate-space-for-a-typedefd-type
     pAudioStats = new(Period_statistics_t);
-    // pAccelStats = new(Period_statistics_t);
+    pAccelStats = new(Period_statistics_t);
 }
 
 void TerminalOutput_cleanup(void)
 {
     cleanupFlag = 1;
     pthread_join(samplerId, NULL);
-    free(pAudioStats);
-    // free(pAccelStats);
+    delete pAudioStats;
+    delete pAccelStats;
 }

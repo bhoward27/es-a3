@@ -24,8 +24,8 @@
 #define JOYSTICK_PUSHED_VALUE_FILE "/sys/class/gpio/gpio27/value"
 
 #define INPUT_SLEEP_TIME 10
-#define PUSH_INPUT_DEBOUNCE_TIME 150.0
-#define JOYSTICK_INPUT_DEBOUNCE_TIME 90.0
+#define PUSH_INPUT_DEBOUNCE_TIME 300
+#define JOYSTICK_INPUT_DEBOUNCE_TIME 180
 
 static pthread_t samplerId;
 // Learned how to make ms timer from this link: https://www.reddit.com/r/learnprogramming/comments/1dlxqv/comment/c9rksma/
