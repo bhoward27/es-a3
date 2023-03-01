@@ -12,7 +12,7 @@ WFLAGS = -Wall -Werror
 OPT = -g
 CFLAGS = $(WFLAGS) $(OPT) -D _POSIX_C_SOURCE=200809L
 LFLAGS = -L$(HOME)/cmpt433/public/asound_lib_BBB
-SOURCES = main.cpp shutdown_manager.cpp utils.cpp audio_mixer.cpp beat_player.cpp udpServer.cpp joystick.cpp
+SOURCES = main.cpp shutdown_manager.cpp utils.cpp audio_mixer.cpp beat_player.cpp udpServer.cpp joystick.cpp terminalOutput.cpp periodTimer.cpp
 
 all: cpp_app node wav
 
