@@ -1,5 +1,4 @@
-// TODO: Add comment.
-
+// The BeatPlayer class allows for continuous beat playback. Can increase/decrease the tempo too.
 #ifndef BEAT_PLAYER_H_
 #define BEAT_PLAYER_H_
 

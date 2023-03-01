@@ -1,5 +1,5 @@
 // CITATION: This file is based off Dr. Brian Fraser's provided code.
-// TODO: Add comment explaining the file.
+// The AudioMixer class provides functions to control the volume, and to queue basic sounds to play.
 #ifndef AUDIO_MIXER_H_
 #define AUDIO_MIXER_H_
 
