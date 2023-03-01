@@ -9,6 +9,7 @@
 
 #include "joystick.h"
 #include "utils.h"
+#include "joystick.h"
 
 #define JOYSTICK_UP_DIRECTION_FILE "/sys/class/gpio/gpio26/direction"
 #define JOYSTICK_DOWN_DIRECTION_FILE "/sys/class/gpio/gpio46/direction"
@@ -25,8 +26,15 @@
 static pthread_t samplerId;
 // Learned how to make ms timer from this link: https://www.reddit.com/r/learnprogramming/comments/1dlxqv/comment/c9rksma/
 static clock_t upDirectionTimer = clock();
+static clock_t downDirectionTimer = clock();
+static clock_t leftDirectionTimer = clock();
+static clock_t rightDirectionTimer = clock();
+static clock_t pushedDirectionTimer = clock();
+
 static bool cleanupFlag = false;
 static ShutdownManager* pShutdownManager = nullptr;
+static BeatPlayer* pBeatPlayer = nullptr;
+static AudioMixer* pAudioMixer = nullptr;
 
 // The function below was provided by Dr. Brian Fraser
 static void Joystick_runCommand(std::string command)
@@ -106,38 +114,43 @@ enum direction Joystick_checkWhichDirectionIsPressed(void)
 
 static void *joystickThread(void *args)
 {
-    sleepForMs(100);
 	while (true) {
+        sleepForMs(10);
         if (cleanupFlag) {
             break;
         }
+
         enum direction currentDirection = Joystick_checkWhichDirectionIsPressed();
-        // if (100.0 < (double(clock() - upDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
-        //     printf("%f\n", (double(clock() - upDirectionTimer) / CLOCKS_PER_SEC * 1000));
-        // }
-        
-        if (currentDirection == up && 100.0 < (double(clock() - upDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
-            printf("up command here");
-            printf("%f", (double(clock() - upDirectionTimer) / CLOCKS_PER_SEC * 1000));
+        if (currentDirection == up && 90.0 < (double(clock() - upDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
+            pAudioMixer->increaseVolume();
             upDirectionTimer = clock();
-        } else if (currentDirection == down) {
-            printf("down command here");
-        } else if (currentDirection == left) {
-            printf("left command here");
-        } else if (currentDirection == right) {
-            printf("right command here");
-        } else if (currentDirection == pushed) {
-            printf("pushed command here");
+        } else if (currentDirection == down && 90.0 < (double(clock() - downDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
+            pAudioMixer->decreaseVolume();
+            downDirectionTimer = clock();
+        } else if (currentDirection == left && 90.0 < (double(clock() - leftDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
+            pBeatPlayer->decreaseTempo();
+            leftDirectionTimer = clock();
+        } else if (currentDirection == right && 90.0 < (double(clock() - rightDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
+            pBeatPlayer->increaseTempo();
+            rightDirectionTimer = clock();
+        } else if (currentDirection == pushed && 150.0 < (double(clock() - pushedDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
+            Beat currentBeat = pBeatPlayer->getBeat();
+            // Learned how to convert int to enum in c++ from this link: https://stackoverflow.com/questions/11452920/how-to-cast-int-to-enum-in-c
+            pBeatPlayer->play(static_cast<Beat>(((int)currentBeat+1)%3));
+            pushedDirectionTimer = clock();
         }
     }
     return 0;
 }
 
-void Joystick_initializeJoystick(ShutdownManager* pShutdownManagerArg)
+void Joystick_initializeJoystick(ShutdownManager* pShutdownManagerArg, AudioMixer* pAudioMixerArg, BeatPlayer* pBeatPlayerArg)
 {
-    if (pShutdownManagerArg == nullptr) {
+    if (pShutdownManagerArg == nullptr || pAudioMixerArg == nullptr || pBeatPlayerArg == nullptr) {
         return;
     }
+
+    pAudioMixer = pAudioMixerArg;
+    pBeatPlayer = pBeatPlayerArg;
     pShutdownManager = pShutdownManagerArg;
 
     Joystick_runCommand("config-pin p8.14 gpio");

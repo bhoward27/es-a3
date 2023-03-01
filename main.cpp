@@ -9,22 +9,25 @@
 #include "joystick.h"
 #include "accelerometer.h"
 #include "air_drummer.h"
+#include "terminalOutput.h"
+#include "periodTimer.h"
 
 int main()
 {
-    std::cout << "Hello BeagleBone!\n";
-
+    Period_init();
     ShutdownManager shutdownManager;
-    Joystick_initializeJoystick(&shutdownManager);
     AudioMixer mixer(&shutdownManager);
     BeatPlayer beatPlayer(&shutdownManager, &mixer);
+    Joystick_initializeJoystick(&shutdownManager, &mixer, &beatPlayer);
+    TerminalOutput_initialize(&mixer, &beatPlayer);
     UdpServer_initialize(&shutdownManager, &mixer, &beatPlayer);
     Accelerometer accel(&shutdownManager);
     AirDrummer(&shutdownManager, &mixer, &accel);
 
     UdpServer_cleanup();
+    TerminalOutput_cleanup();
     Joystick_cleanupJoystick();
-    printf("Done!\n");
+    Period_cleanup();
 
     return 0;
 }

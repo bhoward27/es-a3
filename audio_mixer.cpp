@@ -6,6 +6,7 @@
 
 #include "audio_mixer.h"
 #include "utils.h"
+#include "periodTimer.h"
 
 AudioMixer::AudioMixer(ShutdownManager* pShutdownManager)
 {
@@ -254,6 +255,7 @@ void AudioMixer::fillPlaybackBuffer()
             }
             playbackSample = sum;
         }
+        Period_markEvent(PERIOD_EVENT_FILL_BUFFER);
     }
     lock.unlock();
 }
