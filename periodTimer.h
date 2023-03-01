@@ -10,7 +10,7 @@
 //     occurance of the event. For example, call this function
 //     each time you sample the A2D.
 //  3. Call getStatisticsAndClear() to get the statistics for
-//     an event of interest. Calling this will clear the 
+//     an event of interest. Calling this will clear the
 //     data collected for this event (but not others).
 //     For example, call this function once a second to get timing
 //     information to print to the screen.
@@ -35,8 +35,8 @@ typedef struct {
 void Period_init(void);
 void Period_cleanup(void);
 
-// Record the current time as a timestamp for the 
-// indicated event. This allows later calls to 
+// Record the current time as a timestamp for the
+// indicated event. This allows later calls to
 // Period_getStatisticsAndClear() to access these timestamps
 // and compute the timing statistics for this periodic event.
 void Period_markEvent(enum Period_whichEvent whichEvent);

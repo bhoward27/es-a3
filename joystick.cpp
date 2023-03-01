@@ -121,19 +121,19 @@ static void *joystickThread(void *args)
         }
 
         enum direction currentDirection = Joystick_checkWhichDirectionIsPressed();
-        if (currentDirection == up && 90.0 < (double(clock() - upDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
+        if (currentDirection == up && 180 < (double(clock() - upDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
             pAudioMixer->increaseVolume();
             upDirectionTimer = clock();
-        } else if (currentDirection == down && 90.0 < (double(clock() - downDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
+        } else if (currentDirection == down && 180 < (double(clock() - downDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
             pAudioMixer->decreaseVolume();
             downDirectionTimer = clock();
-        } else if (currentDirection == left && 90.0 < (double(clock() - leftDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
+        } else if (currentDirection == left && 180 < (double(clock() - leftDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
             pBeatPlayer->decreaseTempo();
             leftDirectionTimer = clock();
-        } else if (currentDirection == right && 90.0 < (double(clock() - rightDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
+        } else if (currentDirection == right && 180 < (double(clock() - rightDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
             pBeatPlayer->increaseTempo();
             rightDirectionTimer = clock();
-        } else if (currentDirection == pushed && 150.0 < (double(clock() - pushedDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
+        } else if (currentDirection == pushed && 300.0 < (double(clock() - pushedDirectionTimer) / CLOCKS_PER_SEC * 1000)) {
             Beat currentBeat = pBeatPlayer->getBeat();
             // Learned how to convert int to enum in c++ from this link: https://stackoverflow.com/questions/11452920/how-to-cast-int-to-enum-in-c
             pBeatPlayer->play(static_cast<Beat>(((int)currentBeat+1)%3));

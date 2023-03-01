@@ -1,4 +1,5 @@
 #include "accelerometer.h"
+#include "periodTimer.h"
 
 Accelerometer::Accelerometer(ShutdownManager* pShutdownManager) : i2c(busNumber, deviceAddress)
 {
@@ -30,6 +31,8 @@ Acceleration Accelerometer::readRaw()
     accel.y = (buffer[outYMsbAddress] << 8) | (buffer[outYLsbAddress]);
     accel.z = (buffer[outZMsbAddress] << 8) | (buffer[outZLsbAddress]);
 
+    Period_markEvent(PERIOD_EVENT_SAMPLE_ACCELEROMETER);
+
     return accel;
 }
 
@@ -51,6 +54,6 @@ void Accelerometer::run()
         boolAccel.y = (accel.y >= minPositiveForce || accel.y <= minNegativeForce);
         boolAccel.z = (accel.z >= minPositiveForceZ || accel.z <= minNegativeForceZ);
 
-        sleepForMs(50);
+        sleepForMs(10);
     }
 }
